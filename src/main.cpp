@@ -1,6 +1,6 @@
-#include <iostream>
+#include "Exceptions.h"
+#include "SmartDevice.h"
 
 int main() {
-    std::cout << "Smart Home Management System" << std::endl;
     return 0;
 }
