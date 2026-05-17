@@ -1,35 +1,49 @@
 #include "Camera.h"
 #include "Exceptions.h"
+#include "HomeHub.h"
 #include "Light.h"
 #include "SmartLock.h"
 #include "Thermostat.h"
 
 #include <iostream>
+#include <vector>
 
 int main() {
-    Light livingRoomLight("light-1", "Living Room Light", 9.5);
-    Thermostat hallwayThermostat("thermo-1", "Hallway Thermostat", 3.0);
-    Camera frontDoorCamera("camera-1", "Front Door Camera", 12.0);
-    SmartLock frontDoorLock("lock-1", "Front Door Lock", 5.0, "1234");
+    HomeHub hub;
 
-    livingRoomLight.printStatus();
-    hallwayThermostat.printStatus();
-    frontDoorCamera.printStatus();
-    frontDoorLock.printStatus();
+    hub.addDevice(new Light("light-1", "Living Room Light", 9.5));
+    hub.addDevice(new Thermostat("thermo-1", "Hallway Thermostat", 3.0));
+    hub.addDevice(new Camera("camera-1", "Front Door Camera", 12.0));
+    hub.addDevice(new SmartLock("lock-1", "Front Door Lock", 5.0, "1234"));
 
-    livingRoomLight.setBrightness(75);
-    hallwayThermostat.setTemp(21.5);
-    frontDoorCamera.setResolution("4K");
+    std::cout << "Initial statuses:" << std::endl;
+    hub.printAllStatuses();
 
-    if (frontDoorLock.unlock("1234")) {
-        std::cout << "Smart lock unlocked successfully." << std::endl;
+    std::cout << std::endl << "Executing night_mode scene..." << std::endl;
+    hub.executeScene("night_mode");
+
+    std::cout << std::endl << "Statuses after night_mode:" << std::endl;
+    hub.printAllStatuses();
+
+    std::cout << std::endl
+              << "Total power of active devices: "
+              << hub.calculateTotalPower() << "W" << std::endl;
+
+    std::cout << std::endl << "Renaming light-1..." << std::endl;
+    hub.renameDevice("light-1", "Main Living Room Light");
+    hub.printAllStatuses();
+
+    std::cout << std::endl << "Active devices:" << std::endl;
+    std::vector<SmartDevice*> activeDevices = hub.getActiveDevices();
+    for (const SmartDevice* device : activeDevices) {
+        std::cout << "- " << device->getName() << " (" << device->getId() << ")" << std::endl;
     }
 
-    try {
-        livingRoomLight.setBrightness(150);
-    } catch (const InvalidSettingException& ex) {
-        std::cout << "Invalid setting caught: " << ex.what() << std::endl;
-    }
+    std::cout << std::endl << "Removing camera-1..." << std::endl;
+    hub.removeDevice("camera-1");
+
+    std::cout << std::endl << "Statuses after removing camera-1:" << std::endl;
+    hub.printAllStatuses();
 
     return 0;
 }
