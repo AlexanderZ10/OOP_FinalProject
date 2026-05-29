@@ -12,6 +12,10 @@ Camera::Camera(std::string id, std::string name, double wattage)
       motionDetected(false) {
 }
 
+std::string Camera::getType() const {
+    return "Camera";
+}
+
 void Camera::startRecording() {
     isRecording = true;
 }

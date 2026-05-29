@@ -15,6 +15,7 @@ public:
     void stopRecording();
     void setResolution(std::string res);
 
+    std::string getType() const override;
     void printStatus() const override;
     void applyScene(const std::string& scene) override;
 };

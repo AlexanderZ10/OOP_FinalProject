@@ -14,6 +14,7 @@ public:
     void setTemp(double temp);
     double getTemp() const;
 
+    std::string getType() const override;
     void printStatus() const override;
     void applyScene(const std::string& scene) override;
 };

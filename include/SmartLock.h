@@ -15,6 +15,7 @@ public:
     void lock();
     void changePin(std::string oldPin, std::string newPin);
 
+    std::string getType() const override;
     void printStatus() const override;
     void applyScene(const std::string& scene) override;
 };

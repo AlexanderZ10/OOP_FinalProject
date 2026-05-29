@@ -22,5 +22,6 @@ public:
     void executeScene(const std::string& scene);
     void printAllStatuses() const;
     std::vector<SmartDevice*> getActiveDevices() const;
+    std::vector<SmartDevice*> getByCategory(const std::string& type) const;
     double calculateTotalPower() const;
 };

@@ -9,6 +9,10 @@ Thermostat::Thermostat(std::string id, std::string name, double wattage)
     : SmartDevice(std::move(id), std::move(name), wattage), targetTemp(22.0) {
 }
 
+std::string Thermostat::getType() const {
+    return "Thermostat";
+}
+
 void Thermostat::setTemp(double temp) {
     if (temp < MIN_TEMP || temp > MAX_TEMP) {
         throw InvalidSettingException("Temperature must be between 5 and 35 degrees.");

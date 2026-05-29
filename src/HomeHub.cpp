@@ -62,6 +62,18 @@ std::vector<SmartDevice*> HomeHub::getActiveDevices() const {
     return activeDevices;
 }
 
+std::vector<SmartDevice*> HomeHub::getByCategory(const std::string& type) const {
+    std::vector<SmartDevice*> matchingDevices;
+
+    for (SmartDevice* device : devices) {
+        if (device != nullptr && device->getType() == type) {
+            matchingDevices.push_back(device);
+        }
+    }
+
+    return matchingDevices;
+}
+
 double HomeHub::calculateTotalPower() const {
     double totalPower = 0.0;
 

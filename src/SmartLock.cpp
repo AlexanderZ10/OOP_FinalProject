@@ -12,6 +12,10 @@ SmartLock::SmartLock(std::string id, std::string name, double wattage, std::stri
       isLocked(true) {
 }
 
+std::string SmartLock::getType() const {
+    return "SmartLock";
+}
+
 bool SmartLock::unlock(std::string pin) {
     if (pin == pinCode) {
         isLocked = false;

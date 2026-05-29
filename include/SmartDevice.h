@@ -22,6 +22,7 @@ public:
     double getWattage() const;
     bool isOn() const;
 
+    virtual std::string getType() const = 0;
     virtual void printStatus() const = 0;
     virtual void applyScene(const std::string& scene) = 0;
 };

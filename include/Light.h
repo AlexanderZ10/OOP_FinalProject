@@ -13,6 +13,7 @@ public:
     void setBrightness(int value);
     void setColorTemp(int value);
 
+    std::string getType() const override;
     void printStatus() const override;
     void applyScene(const std::string& scene) override;
 };
