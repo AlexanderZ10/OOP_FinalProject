@@ -23,5 +23,6 @@ public:
     void printAllStatuses() const;
     std::vector<SmartDevice*> getActiveDevices() const;
     std::vector<SmartDevice*> getByCategory(const std::string& type) const;
+    std::vector<SmartDevice*> getDevicesSortedByPower() const;
     double calculateTotalPower() const;
 };

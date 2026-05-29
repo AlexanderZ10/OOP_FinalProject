@@ -74,6 +74,24 @@ std::vector<SmartDevice*> HomeHub::getByCategory(const std::string& type) const 
     return matchingDevices;
 }
 
+std::vector<SmartDevice*> HomeHub::getDevicesSortedByPower() const {
+    std::vector<SmartDevice*> sortedDevices = devices;
+
+    std::sort(sortedDevices.begin(), sortedDevices.end(), [](const SmartDevice* left, const SmartDevice* right) {
+        if (left == nullptr) {
+            return false;
+        }
+
+        if (right == nullptr) {
+            return true;
+        }
+
+        return left->getWattage() < right->getWattage();
+    });
+
+    return sortedDevices;
+}
+
 double HomeHub::calculateTotalPower() const {
     double totalPower = 0.0;
 

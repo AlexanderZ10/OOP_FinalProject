@@ -51,6 +51,14 @@ int main() {
         std::cout << "- " << device->getName() << " (" << device->getId() << ")" << std::endl;
     }
 
+    std::cout << std::endl << "Devices sorted by power:" << std::endl;
+    std::vector<SmartDevice*> sortedDevices = hub.getDevicesSortedByPower();
+    for (const SmartDevice* device : sortedDevices) {
+        std::cout << "- " << device->getName()
+                  << " | Type: " << device->getType()
+                  << " | Wattage: " << device->getWattage() << "W" << std::endl;
+    }
+
     std::cout << std::endl << "Removing camera-1..." << std::endl;
     hub.removeDevice("camera-1");
 
