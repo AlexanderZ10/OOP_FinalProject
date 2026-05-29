@@ -59,6 +59,36 @@ int main() {
                   << " | Wattage: " << device->getWattage() << "W" << std::endl;
     }
 
+    const double energySavingThreshold = 10.0;
+
+    std::cout << std::endl << "Active devices before energy saving mode:" << std::endl;
+    activeDevices = hub.getActiveDevices();
+    for (const SmartDevice* device : activeDevices) {
+        std::cout << "- " << device->getName()
+                  << " | Type: " << device->getType()
+                  << " | Wattage: " << device->getWattage() << "W" << std::endl;
+    }
+
+    std::cout << std::endl
+              << "Total power before energy saving mode: "
+              << hub.calculateTotalPower() << "W" << std::endl;
+
+    std::cout << std::endl
+              << "Devices above " << energySavingThreshold << "W:" << std::endl;
+    hub.printDevicesAbovePower(energySavingThreshold);
+
+    std::cout << std::endl
+              << "Applying energy saving mode with threshold "
+              << energySavingThreshold << "W:" << std::endl;
+    hub.energySavingMode(energySavingThreshold);
+
+    std::cout << std::endl
+              << "Total power after energy saving mode: "
+              << hub.calculateTotalPower() << "W" << std::endl;
+
+    std::cout << std::endl << "Statuses after energy saving mode:" << std::endl;
+    hub.printAllStatuses();
+
     std::cout << std::endl << "Removing camera-1..." << std::endl;
     hub.removeDevice("camera-1");
 

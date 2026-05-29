@@ -1,6 +1,7 @@
 #include "HomeHub.h"
 
 #include <algorithm>
+#include <iostream>
 
 HomeHub::~HomeHub() {
     for (SmartDevice* device : devices) {
@@ -90,6 +91,42 @@ std::vector<SmartDevice*> HomeHub::getDevicesSortedByPower() const {
     });
 
     return sortedDevices;
+}
+
+void HomeHub::energySavingMode(double threshold) {
+    bool turnedOffAnyDevice = false;
+
+    for (SmartDevice* device : devices) {
+        if (device != nullptr && device->isOn() && device->getWattage() > threshold) {
+            std::cout << "- Turning off " << device->getName()
+                      << " (" << device->getType()
+                      << ", " << device->getWattage() << "W)" << std::endl;
+            device->turnOff();
+            turnedOffAnyDevice = true;
+        }
+    }
+
+    if (!turnedOffAnyDevice) {
+        std::cout << "- No active devices above " << threshold << "W were turned off." << std::endl;
+    }
+}
+
+void HomeHub::printDevicesAbovePower(double threshold) const {
+    bool foundDevice = false;
+
+    for (const SmartDevice* device : devices) {
+        if (device != nullptr && device->getWattage() > threshold) {
+            std::cout << "- " << device->getName()
+                      << " | Type: " << device->getType()
+                      << " | Wattage: " << device->getWattage() << "W"
+                      << " | Active: " << (device->isOn() ? "yes" : "no") << std::endl;
+            foundDevice = true;
+        }
+    }
+
+    if (!foundDevice) {
+        std::cout << "- No devices above " << threshold << "W." << std::endl;
+    }
 }
 
 double HomeHub::calculateTotalPower() const {

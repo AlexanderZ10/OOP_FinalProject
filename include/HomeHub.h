@@ -24,5 +24,7 @@ public:
     std::vector<SmartDevice*> getActiveDevices() const;
     std::vector<SmartDevice*> getByCategory(const std::string& type) const;
     std::vector<SmartDevice*> getDevicesSortedByPower() const;
+    void energySavingMode(double threshold);
+    void printDevicesAbovePower(double threshold) const;
     double calculateTotalPower() const;
 };
