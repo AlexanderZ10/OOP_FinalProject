@@ -74,6 +74,20 @@ int readInt(const string& prompt) {
     }
 }
 
+int readIntInRange(const string& prompt, int minValue, int maxValue) {
+    int value;
+
+    do {
+        value = readInt(prompt);
+        if (value < minValue || value > maxValue) {
+            std::cout << "Invalid option. Please enter a value between "
+                      << minValue << " and " << maxValue << "." << std::endl;
+        }
+    } while (value < minValue || value > maxValue);
+
+    return value;
+}
+
 string readString(const string& prompt) {
     string value;
 
@@ -156,6 +170,66 @@ bool isValidDeviceType(const string& type) {
     return type == "Light" || type == "Thermostat" || type == "Camera" || type == "SmartLock";
 }
 
+string readUniqueDeviceId(HomeHub& hub) {
+    string id;
+
+    while (true) {
+        id = readRequiredId();
+
+        if (hub.findDeviceById(id) == nullptr) {
+            return id;
+        }
+
+        std::cout << "A device with this ID already exists. Please enter a different ID." << std::endl;
+    }
+}
+
+SmartDevice* readExistingDevice(HomeHub& hub) {
+    while (true) {
+        string id = readString("Enter device ID (or 0 to cancel): ");
+
+        if (id == "0") {
+            return nullptr;
+        }
+
+        if (id.empty()) {
+            std::cout << "ID cannot be empty." << std::endl;
+            continue;
+        }
+
+        SmartDevice* device = hub.findDeviceById(id);
+        if (device != nullptr) {
+            return device;
+        }
+
+        std::cout << "Device not found. Please enter an existing ID." << std::endl;
+    }
+}
+
+string readValidCommand() {
+    while (true) {
+        string command = readString("Enter command (on/off): ");
+
+        if (command == "on" || command == "off") {
+            return command;
+        }
+
+        std::cout << "Invalid command. Use on or off." << std::endl;
+    }
+}
+
+string readValidCategory() {
+    while (true) {
+        string type = readString("Enter category: ");
+
+        if (isValidDeviceType(type)) {
+            return type;
+        }
+
+        std::cout << "Invalid category. Use Light, Thermostat, Camera, or SmartLock." << std::endl;
+    }
+}
+
 void printDeviceSummary(const SmartDevice* device) {
     if (device == nullptr) {
         return;
@@ -186,18 +260,8 @@ void addDeviceMenu(HomeHub& hub) {
               << "3. Camera" << std::endl
               << "4. SmartLock (requires PIN)" << std::endl;
 
-    int type = readInt("Choose device type: ");
-    if (type < 1 || type > 4) {
-        std::cout << "Invalid device type. Device was not added." << std::endl;
-        return;
-    }
-
-    string id = readRequiredId();
-    if (hub.findDeviceById(id) != nullptr) {
-        std::cout << "A device with this ID already exists. Device was not added." << std::endl;
-        return;
-    }
-
+    int type = readIntInRange("Choose device type: ", 1, 4);
+    string id = readUniqueDeviceId(hub);
     string name = readString("Enter device name: ");
     double wattage = readValidWattage();
 
@@ -224,26 +288,26 @@ void addDeviceMenu(HomeHub& hub) {
 }
 
 void removeDeviceMenu(HomeHub& hub) {
-    string id = readRequiredId();
-    if (hub.findDeviceById(id) == nullptr) {
-        std::cout << "Device not found. Nothing was removed." << std::endl;
+    SmartDevice* device = readExistingDevice(hub);
+    if (device == nullptr) {
+        std::cout << "Remove cancelled." << std::endl;
         return;
     }
 
-    hub.removeDevice(id);
+    hub.removeDevice(device->getId());
     std::cout << "Device removed successfully." << std::endl;
 }
 
 void renameDeviceMenu(HomeHub& hub) {
-    string id = readRequiredId();
-    if (hub.findDeviceById(id) == nullptr) {
-        std::cout << "Device not found. Nothing was renamed." << std::endl;
+    SmartDevice* device = readExistingDevice(hub);
+    if (device == nullptr) {
+        std::cout << "Rename cancelled." << std::endl;
         return;
     }
 
     string newName = readString("Enter new device name: ");
 
-    hub.renameDevice(id, newName);
+    hub.renameDevice(device->getId(), newName);
     std::cout << "Device renamed successfully." << std::endl;
 }
 
@@ -253,11 +317,9 @@ void showAllDevicesMenu(HomeHub& hub) {
 }
 
 void turnDeviceMenu(HomeHub& hub) {
-    string id = readRequiredId();
-    SmartDevice* device = hub.findDeviceById(id);
-
+    SmartDevice* device = readExistingDevice(hub);
     if (device == nullptr) {
-        std::cout << "Device not found." << std::endl;
+        std::cout << "Turn device action cancelled." << std::endl;
         return;
     }
 
@@ -266,16 +328,14 @@ void turnDeviceMenu(HomeHub& hub) {
               << "1. Turn on" << std::endl
               << "2. Turn off" << std::endl;
 
-    int choice = readInt("Choose action: ");
+    int choice = readIntInRange("Choose action: ", 1, 2);
 
     if (choice == 1) {
         device->turnOn();
         std::cout << "Device turned on." << std::endl;
-    } else if (choice == 2) {
+    } else {
         device->turnOff();
         std::cout << "Device turned off." << std::endl;
-    } else {
-        std::cout << "Invalid action." << std::endl;
     }
 }
 
@@ -285,25 +345,37 @@ void changeLightSettings(Light* light) {
               << "1. Change brightness" << std::endl
               << "2. Change color temperature" << std::endl;
 
-    int choice = readInt("Choose setting: ");
+    int choice = readIntInRange("Choose setting: ", 1, 2);
 
     if (choice == 1) {
-        int brightness = readInt("Enter brightness (0-100): ");
-        light->setBrightness(brightness);
-        std::cout << "Brightness updated." << std::endl;
-    } else if (choice == 2) {
+        while (true) {
+            try {
+                int brightness = readInt("Enter brightness (0-100): ");
+                light->setBrightness(brightness);
+                std::cout << "Brightness updated." << std::endl;
+                return;
+            } catch (const InvalidSettingException& ex) {
+                std::cout << "Invalid setting: " << ex.what() << std::endl;
+            }
+        }
+    } else {
         int colorTemp = readInt("Enter color temperature: ");
         light->setColorTemp(colorTemp);
         std::cout << "Color temperature updated." << std::endl;
-    } else {
-        std::cout << "Invalid setting." << std::endl;
     }
 }
 
 void changeThermostatSettings(Thermostat* thermostat) {
-    double temperature = readDouble("Enter target temperature: ");
-    thermostat->setTemp(temperature);
-    std::cout << "Temperature updated." << std::endl;
+    while (true) {
+        try {
+            double temperature = readDouble("Enter target temperature: ");
+            thermostat->setTemp(temperature);
+            std::cout << "Temperature updated." << std::endl;
+            return;
+        } catch (const InvalidSettingException& ex) {
+            std::cout << "Invalid setting: " << ex.what() << std::endl;
+        }
+    }
 }
 
 void changeCameraSettings(Camera* camera) {
@@ -313,20 +385,25 @@ void changeCameraSettings(Camera* camera) {
               << "2. Start recording" << std::endl
               << "3. Stop recording" << std::endl;
 
-    int choice = readInt("Choose setting: ");
+    int choice = readIntInRange("Choose setting: ", 1, 3);
 
     if (choice == 1) {
-        string resolution = readString("Enter resolution (720p, 1080p, 4K): ");
-        camera->setResolution(resolution);
-        std::cout << "Resolution updated." << std::endl;
+        while (true) {
+            try {
+                string resolution = readString("Enter resolution (720p, 1080p, 4K): ");
+                camera->setResolution(resolution);
+                std::cout << "Resolution updated." << std::endl;
+                return;
+            } catch (const InvalidSettingException& ex) {
+                std::cout << "Invalid setting: " << ex.what() << std::endl;
+            }
+        }
     } else if (choice == 2) {
         camera->startRecording();
         std::cout << "Recording started." << std::endl;
-    } else if (choice == 3) {
+    } else {
         camera->stopRecording();
         std::cout << "Recording stopped." << std::endl;
-    } else {
-        std::cout << "Invalid setting." << std::endl;
     }
 }
 
@@ -337,34 +414,40 @@ void changeSmartLockSettings(SmartLock* smartLock) {
               << "2. Unlock with PIN" << std::endl
               << "3. Change PIN" << std::endl;
 
-    int choice = readInt("Choose setting: ");
+    int choice = readIntInRange("Choose setting: ", 1, 3);
 
     if (choice == 1) {
         smartLock->lock();
         std::cout << "SmartLock locked." << std::endl;
     } else if (choice == 2) {
-        string pin = readString("Enter PIN: ");
-        if (smartLock->unlock(pin)) {
-            std::cout << "SmartLock unlocked." << std::endl;
-        } else {
-            std::cout << "Invalid PIN." << std::endl;
+        while (true) {
+            string pin = readString("Enter PIN: ");
+            if (smartLock->unlock(pin)) {
+                std::cout << "SmartLock unlocked." << std::endl;
+                return;
+            }
+
+            std::cout << "Invalid PIN. Please try again." << std::endl;
         }
-    } else if (choice == 3) {
-        string oldPin = readString("Enter old PIN: ");
-        string newPin = readString("Enter new PIN: ");
-        smartLock->changePin(oldPin, newPin);
-        std::cout << "PIN changed." << std::endl;
     } else {
-        std::cout << "Invalid setting." << std::endl;
+        while (true) {
+            try {
+                string oldPin = readString("Enter old PIN: ");
+                string newPin = readString("Enter new PIN: ");
+                smartLock->changePin(oldPin, newPin);
+                std::cout << "PIN changed." << std::endl;
+                return;
+            } catch (const InvalidSettingException& ex) {
+                std::cout << "Invalid setting: " << ex.what() << std::endl;
+            }
+        }
     }
 }
 
 void changeDeviceSettingsMenu(HomeHub& hub) {
-    string id = readRequiredId();
-    SmartDevice* device = hub.findDeviceById(id);
-
+    SmartDevice* device = readExistingDevice(hub);
     if (device == nullptr) {
-        std::cout << "Device not found." << std::endl;
+        std::cout << "Change settings cancelled." << std::endl;
         return;
     }
 
@@ -398,7 +481,7 @@ void executeSceneMenu(HomeHub& hub) {
               << "2. Night Mode" << std::endl
               << "0. Back" << std::endl;
 
-    int choice = readInt("Choose scene: ");
+    int choice = readIntInRange("Choose scene: ", 0, 2);
 
     if (choice == 0) {
         return;
@@ -407,11 +490,9 @@ void executeSceneMenu(HomeHub& hub) {
     if (choice == 1) {
         hub.executeScene("going_out");
         std::cout << "Scene executed successfully." << std::endl;
-    } else if (choice == 2) {
+    } else {
         hub.executeScene("night_mode");
         std::cout << "Scene executed successfully." << std::endl;
-    } else {
-        std::cout << "Invalid scene option." << std::endl;
     }
 }
 
@@ -428,11 +509,7 @@ void showDevicesByCategoryMenu(HomeHub& hub) {
     std::cout << std::endl
               << "Available categories: Light, Thermostat, Camera, SmartLock" << std::endl;
 
-    string type = readString("Enter category: ");
-    if (!isValidDeviceType(type)) {
-        std::cout << "Invalid category." << std::endl;
-        return;
-    }
+    string type = readValidCategory();
 
     std::cout << std::endl << type << " devices:" << std::endl;
     printDeviceList(hub.getByCategory(type), "No devices in this category.");
@@ -503,20 +580,13 @@ void powerManagementMenu(HomeHub& hub) {
 }
 
 void createScheduledTaskMenu(HomeHub& hub, TaskManager& taskManager) {
-    string id = readRequiredId();
-    SmartDevice* device = hub.findDeviceById(id);
-
+    SmartDevice* device = readExistingDevice(hub);
     if (device == nullptr) {
-        std::cout << "Device not found. Task was not created." << std::endl;
+        std::cout << "Create task cancelled." << std::endl;
         return;
     }
 
-    string command = readString("Enter command (on/off): ");
-    if (command != "on" && command != "off") {
-        std::cout << "Invalid command. Use on or off." << std::endl;
-        return;
-    }
-
+    string command = readValidCommand();
     int delaySeconds = readNonNegativeInt("Enter delay in seconds: ");
     taskManager.addTask(device, command, delaySeconds);
 
