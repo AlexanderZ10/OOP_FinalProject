@@ -9,6 +9,7 @@
 #include <iostream>
 #include <limits>
 #include <string>
+#include <vector>
 
 using std::string;
 
@@ -98,6 +99,45 @@ double readValidWattage() {
     } while (wattage < 0);
 
     return wattage;
+}
+
+double readNonNegativeDouble(const string& prompt) {
+    double value;
+
+    do {
+        value = readDouble(prompt);
+        if (value < 0) {
+            std::cout << "Value cannot be negative." << std::endl;
+        }
+    } while (value < 0);
+
+    return value;
+}
+
+bool isValidDeviceType(const string& type) {
+    return type == "Light" || type == "Thermostat" || type == "Camera" || type == "SmartLock";
+}
+
+void printDeviceSummary(const SmartDevice* device) {
+    if (device == nullptr) {
+        return;
+    }
+
+    std::cout << "- ID: " << device->getId()
+              << " | Name: " << device->getName()
+              << " | Type: " << device->getType()
+              << " | Wattage: " << device->getWattage() << "W" << std::endl;
+}
+
+void printDeviceList(const std::vector<SmartDevice*>& devices, const string& emptyMessage) {
+    if (devices.empty()) {
+        std::cout << emptyMessage << std::endl;
+        return;
+    }
+
+    for (const SmartDevice* device : devices) {
+        printDeviceSummary(device);
+    }
 }
 
 void addDeviceMenu(HomeHub& hub) {
@@ -298,6 +338,117 @@ void changeDeviceSettingsMenu(HomeHub& hub) {
     }
 }
 
+void executeSceneMenu(HomeHub& hub) {
+    std::cout << std::endl
+              << "Execute scene:" << std::endl
+              << "1. Going Out" << std::endl
+              << "2. Night Mode" << std::endl
+              << "0. Back" << std::endl;
+
+    int choice = readInt("Choose scene: ");
+
+    if (choice == 0) {
+        return;
+    }
+
+    if (choice == 1) {
+        hub.executeScene("going_out");
+        std::cout << "Scene executed successfully." << std::endl;
+    } else if (choice == 2) {
+        hub.executeScene("night_mode");
+        std::cout << "Scene executed successfully." << std::endl;
+    } else {
+        std::cout << "Invalid scene option." << std::endl;
+    }
+}
+
+void showTotalPowerMenu(HomeHub& hub) {
+    std::cout << "Total power consumption: " << hub.calculateTotalPower() << "W" << std::endl;
+}
+
+void showActiveDevicesMenu(HomeHub& hub) {
+    std::cout << std::endl << "Active devices:" << std::endl;
+    printDeviceList(hub.getActiveDevices(), "No active devices.");
+}
+
+void showDevicesByCategoryMenu(HomeHub& hub) {
+    std::cout << std::endl
+              << "Available categories: Light, Thermostat, Camera, SmartLock" << std::endl;
+
+    string type = readString("Enter category: ");
+    if (!isValidDeviceType(type)) {
+        std::cout << "Invalid category." << std::endl;
+        return;
+    }
+
+    std::cout << std::endl << type << " devices:" << std::endl;
+    printDeviceList(hub.getByCategory(type), "No devices in this category.");
+}
+
+void sortDevicesByPowerMenu(HomeHub& hub) {
+    std::cout << std::endl << "Devices sorted by power:" << std::endl;
+    printDeviceList(hub.getDevicesSortedByPower(), "No devices to sort.");
+}
+
+void energySavingModeMenu(HomeHub& hub) {
+    double threshold = readNonNegativeDouble("Enter power threshold: ");
+    std::vector<SmartDevice*> devicesToTurnOff;
+
+    for (SmartDevice* device : hub.getActiveDevices()) {
+        if (device != nullptr && device->getWattage() > threshold) {
+            devicesToTurnOff.push_back(device);
+        }
+    }
+
+    std::cout << std::endl << "Devices that will be turned off:" << std::endl;
+    printDeviceList(devicesToTurnOff, "No active devices are above the threshold.");
+
+    hub.energySavingMode(threshold);
+
+    std::cout << "New total power consumption: " << hub.calculateTotalPower() << "W" << std::endl;
+}
+
+void powerManagementMenu(HomeHub& hub) {
+    bool inPowerMenu = true;
+
+    while (inPowerMenu) {
+        std::cout << std::endl
+                  << "Power Management" << std::endl
+                  << "1. Show total power consumption" << std::endl
+                  << "2. Show active devices" << std::endl
+                  << "3. Show devices by category" << std::endl
+                  << "4. Sort devices by power" << std::endl
+                  << "5. Energy saving mode" << std::endl
+                  << "0. Back" << std::endl;
+
+        int choice = readInt("Choose option: ");
+
+        switch (choice) {
+            case 0:
+                inPowerMenu = false;
+                break;
+            case 1:
+                showTotalPowerMenu(hub);
+                break;
+            case 2:
+                showActiveDevicesMenu(hub);
+                break;
+            case 3:
+                showDevicesByCategoryMenu(hub);
+                break;
+            case 4:
+                sortDevicesByPowerMenu(hub);
+                break;
+            case 5:
+                energySavingModeMenu(hub);
+                break;
+            default:
+                std::cout << "Invalid option. Please try again." << std::endl;
+                break;
+        }
+    }
+}
+
 void runMenu() {
     HomeHub hub;
     bool running = true;
@@ -328,16 +479,26 @@ void runMenu() {
                 changeDeviceSettingsMenu(hub);
                 break;
             case 6:
-                std::cout << "Feature will be implemented in the next step." << std::endl;
+                executeSceneMenu(hub);
                 break;
             case 7:
                 showAllDevicesMenu(hub);
                 break;
             case 8:
+                showActiveDevicesMenu(hub);
+                break;
             case 9:
+                showDevicesByCategoryMenu(hub);
+                break;
             case 10:
+                sortDevicesByPowerMenu(hub);
+                break;
             case 11:
+                showTotalPowerMenu(hub);
+                break;
             case 12:
+                energySavingModeMenu(hub);
+                break;
             case 13:
                 std::cout << "Feature will be implemented in the next step." << std::endl;
                 break;
