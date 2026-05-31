@@ -2,9 +2,11 @@
 #include "Exceptions.h"
 #include "HomeHub.h"
 #include "Light.h"
+#include "ScheduledTask.h"
 #include "SmartLock.h"
 #include "Thermostat.h"
 
+#include <ctime>
 #include <iostream>
 #include <vector>
 
@@ -87,6 +89,45 @@ int main() {
               << hub.calculateTotalPower() << "W" << std::endl;
 
     std::cout << std::endl << "Statuses after energy saving mode:" << std::endl;
+    hub.printAllStatuses();
+
+    SmartDevice* scheduledLight = lightDevices.empty() ? nullptr : lightDevices.front();
+    SmartDevice* scheduledThermostat = hub.getByCategory("Thermostat").front();
+
+    ScheduledTask turnLightOffTask(scheduledLight, "off", 5);
+    ScheduledTask turnThermostatOnTask(scheduledThermostat, "on", 10);
+
+    std::time_t currentTime = std::time(nullptr);
+
+    auto checkTask = [currentTime](ScheduledTask& task,
+                                   SmartDevice* device,
+                                   const std::string& command,
+                                   std::time_t simulatedTime) {
+        bool executedNow = task.checkAndExecute(simulatedTime);
+
+        std::cout << "- Time +" << (simulatedTime - currentTime) << "s | "
+                  << device->getName() << " -> " << command
+                  << " | Activated now: " << (executedNow ? "yes" : "no")
+                  << " | Executed: " << (task.isExecuted() ? "yes" : "no") << std::endl;
+    };
+
+    std::cout << std::endl << "Scheduled tasks demo:" << std::endl;
+    std::cout << "Created task: " << scheduledLight->getName() << " -> off at +5s" << std::endl;
+    std::cout << "Created task: " << scheduledThermostat->getName() << " -> on at +10s" << std::endl;
+
+    std::cout << std::endl << "Checking at current time:" << std::endl;
+    checkTask(turnLightOffTask, scheduledLight, "off", currentTime);
+    checkTask(turnThermostatOnTask, scheduledThermostat, "on", currentTime);
+
+    std::cout << std::endl << "Checking at current time + 5 seconds:" << std::endl;
+    checkTask(turnLightOffTask, scheduledLight, "off", currentTime + 5);
+    checkTask(turnThermostatOnTask, scheduledThermostat, "on", currentTime + 5);
+
+    std::cout << std::endl << "Checking at current time + 10 seconds:" << std::endl;
+    checkTask(turnLightOffTask, scheduledLight, "off", currentTime + 10);
+    checkTask(turnThermostatOnTask, scheduledThermostat, "on", currentTime + 10);
+
+    std::cout << std::endl << "Statuses after scheduled tasks:" << std::endl;
     hub.printAllStatuses();
 
     std::cout << std::endl << "Removing camera-1..." << std::endl;
