@@ -35,6 +35,16 @@ void HomeHub::renameDevice(const std::string& id, const std::string& newName) {
     }
 }
 
+SmartDevice* HomeHub::findDeviceById(const std::string& id) const {
+    for (SmartDevice* device : devices) {
+        if (device != nullptr && device->getId() == id) {
+            return device;
+        }
+    }
+
+    return nullptr;
+}
+
 void HomeHub::executeScene(const std::string& scene) {
     for (SmartDevice* device : devices) {
         if (device != nullptr) {

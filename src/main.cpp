@@ -1,9 +1,11 @@
 #include "Camera.h"
+#include "Exceptions.h"
 #include "HomeHub.h"
 #include "Light.h"
 #include "SmartLock.h"
 #include "Thermostat.h"
 
+#include <exception>
 #include <iostream>
 #include <limits>
 #include <string>
@@ -157,6 +159,145 @@ void showAllDevicesMenu(HomeHub& hub) {
     hub.printAllStatuses();
 }
 
+void turnDeviceMenu(HomeHub& hub) {
+    string id = readRequiredId();
+    SmartDevice* device = hub.findDeviceById(id);
+
+    if (device == nullptr) {
+        std::cout << "Device not found." << std::endl;
+        return;
+    }
+
+    std::cout << std::endl
+              << "Selected device: " << device->getName() << " (" << device->getType() << ")" << std::endl
+              << "1. Turn on" << std::endl
+              << "2. Turn off" << std::endl;
+
+    int choice = readInt("Choose action: ");
+
+    if (choice == 1) {
+        device->turnOn();
+        std::cout << "Device turned on." << std::endl;
+    } else if (choice == 2) {
+        device->turnOff();
+        std::cout << "Device turned off." << std::endl;
+    } else {
+        std::cout << "Invalid action." << std::endl;
+    }
+}
+
+void changeLightSettings(Light* light) {
+    std::cout << std::endl
+              << "Light settings:" << std::endl
+              << "1. Change brightness" << std::endl
+              << "2. Change color temperature" << std::endl;
+
+    int choice = readInt("Choose setting: ");
+
+    if (choice == 1) {
+        int brightness = readInt("Enter brightness (0-100): ");
+        light->setBrightness(brightness);
+        std::cout << "Brightness updated." << std::endl;
+    } else if (choice == 2) {
+        int colorTemp = readInt("Enter color temperature: ");
+        light->setColorTemp(colorTemp);
+        std::cout << "Color temperature updated." << std::endl;
+    } else {
+        std::cout << "Invalid setting." << std::endl;
+    }
+}
+
+void changeThermostatSettings(Thermostat* thermostat) {
+    double temperature = readDouble("Enter target temperature: ");
+    thermostat->setTemp(temperature);
+    std::cout << "Temperature updated." << std::endl;
+}
+
+void changeCameraSettings(Camera* camera) {
+    std::cout << std::endl
+              << "Camera settings:" << std::endl
+              << "1. Change resolution" << std::endl
+              << "2. Start recording" << std::endl
+              << "3. Stop recording" << std::endl;
+
+    int choice = readInt("Choose setting: ");
+
+    if (choice == 1) {
+        string resolution = readString("Enter resolution (720p, 1080p, 4K): ");
+        camera->setResolution(resolution);
+        std::cout << "Resolution updated." << std::endl;
+    } else if (choice == 2) {
+        camera->startRecording();
+        std::cout << "Recording started." << std::endl;
+    } else if (choice == 3) {
+        camera->stopRecording();
+        std::cout << "Recording stopped." << std::endl;
+    } else {
+        std::cout << "Invalid setting." << std::endl;
+    }
+}
+
+void changeSmartLockSettings(SmartLock* smartLock) {
+    std::cout << std::endl
+              << "SmartLock settings:" << std::endl
+              << "1. Lock" << std::endl
+              << "2. Unlock with PIN" << std::endl
+              << "3. Change PIN" << std::endl;
+
+    int choice = readInt("Choose setting: ");
+
+    if (choice == 1) {
+        smartLock->lock();
+        std::cout << "SmartLock locked." << std::endl;
+    } else if (choice == 2) {
+        string pin = readString("Enter PIN: ");
+        if (smartLock->unlock(pin)) {
+            std::cout << "SmartLock unlocked." << std::endl;
+        } else {
+            std::cout << "Invalid PIN." << std::endl;
+        }
+    } else if (choice == 3) {
+        string oldPin = readString("Enter old PIN: ");
+        string newPin = readString("Enter new PIN: ");
+        smartLock->changePin(oldPin, newPin);
+        std::cout << "PIN changed." << std::endl;
+    } else {
+        std::cout << "Invalid setting." << std::endl;
+    }
+}
+
+void changeDeviceSettingsMenu(HomeHub& hub) {
+    string id = readRequiredId();
+    SmartDevice* device = hub.findDeviceById(id);
+
+    if (device == nullptr) {
+        std::cout << "Device not found." << std::endl;
+        return;
+    }
+
+    try {
+        string type = device->getType();
+
+        if (type == "Light") {
+            changeLightSettings(dynamic_cast<Light*>(device));
+        } else if (type == "Thermostat") {
+            changeThermostatSettings(dynamic_cast<Thermostat*>(device));
+        } else if (type == "Camera") {
+            changeCameraSettings(dynamic_cast<Camera*>(device));
+        } else if (type == "SmartLock") {
+            changeSmartLockSettings(dynamic_cast<SmartLock*>(device));
+        } else {
+            std::cout << "Unknown device type." << std::endl;
+        }
+    } catch (const InvalidSettingException& ex) {
+        std::cout << "Invalid setting: " << ex.what() << std::endl;
+    } catch (const LockedException& ex) {
+        std::cout << "Lock error: " << ex.what() << std::endl;
+    } catch (const std::exception& ex) {
+        std::cout << "Error: " << ex.what() << std::endl;
+    }
+}
+
 void runMenu() {
     HomeHub hub;
     bool running = true;
@@ -181,7 +322,11 @@ void runMenu() {
                 renameDeviceMenu(hub);
                 break;
             case 4:
+                turnDeviceMenu(hub);
+                break;
             case 5:
+                changeDeviceSettingsMenu(hub);
+                break;
             case 6:
                 std::cout << "Feature will be implemented in the next step." << std::endl;
                 break;
