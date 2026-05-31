@@ -14,7 +14,11 @@ private:
 
 public:
     ScheduledTask(SmartDevice* target, const std::string& command, int delaySeconds);
+    ScheduledTask(SmartDevice* target, const std::string& command, int delaySeconds, std::time_t currentTime);
 
     bool checkAndExecute(std::time_t now);
+    SmartDevice* getTarget() const;
+    std::string getCommand() const;
+    std::time_t getActivateAt() const;
     bool isExecuted() const;
 };

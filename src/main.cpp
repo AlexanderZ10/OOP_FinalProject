@@ -3,6 +3,7 @@
 #include "HomeHub.h"
 #include "Light.h"
 #include "SmartLock.h"
+#include "TaskManager.h"
 #include "Thermostat.h"
 
 #include <exception>
@@ -106,6 +107,19 @@ double readNonNegativeDouble(const string& prompt) {
 
     do {
         value = readDouble(prompt);
+        if (value < 0) {
+            std::cout << "Value cannot be negative." << std::endl;
+        }
+    } while (value < 0);
+
+    return value;
+}
+
+int readNonNegativeInt(const string& prompt) {
+    int value;
+
+    do {
+        value = readInt(prompt);
         if (value < 0) {
             std::cout << "Value cannot be negative." << std::endl;
         }
@@ -449,8 +463,72 @@ void powerManagementMenu(HomeHub& hub) {
     }
 }
 
+void createScheduledTaskMenu(HomeHub& hub, TaskManager& taskManager) {
+    string id = readRequiredId();
+    SmartDevice* device = hub.findDeviceById(id);
+
+    if (device == nullptr) {
+        std::cout << "Device not found. Task was not created." << std::endl;
+        return;
+    }
+
+    string command = readString("Enter command (on/off): ");
+    if (command != "on" && command != "off") {
+        std::cout << "Invalid command. Use on or off." << std::endl;
+        return;
+    }
+
+    int delaySeconds = readNonNegativeInt("Enter delay in seconds: ");
+    taskManager.addTask(device, command, delaySeconds);
+
+    std::cout << "Scheduled task created." << std::endl;
+}
+
+void scheduledTasksMenu(HomeHub& hub, TaskManager& taskManager) {
+    bool inTaskMenu = true;
+
+    while (inTaskMenu) {
+        std::cout << std::endl
+                  << "Scheduled Tasks" << std::endl
+                  << "Current simulated time: " << static_cast<long long>(taskManager.getCurrentTime()) << std::endl
+                  << "1. Create Task" << std::endl
+                  << "2. List Tasks" << std::endl
+                  << "3. Advance Time" << std::endl
+                  << "4. Execute Pending Tasks" << std::endl
+                  << "0. Back" << std::endl;
+
+        int choice = readInt("Choose option: ");
+
+        switch (choice) {
+            case 0:
+                inTaskMenu = false;
+                break;
+            case 1:
+                createScheduledTaskMenu(hub, taskManager);
+                break;
+            case 2:
+                taskManager.listTasks();
+                break;
+            case 3: {
+                int seconds = readNonNegativeInt("Enter seconds to advance: ");
+                taskManager.advanceTime(seconds);
+                std::cout << "New simulated time: "
+                          << static_cast<long long>(taskManager.getCurrentTime()) << std::endl;
+                break;
+            }
+            case 4:
+                taskManager.executePendingTasks();
+                break;
+            default:
+                std::cout << "Invalid option. Please try again." << std::endl;
+                break;
+        }
+    }
+}
+
 void runMenu() {
     HomeHub hub;
+    TaskManager taskManager;
     bool running = true;
 
     while (running) {
@@ -500,7 +578,7 @@ void runMenu() {
                 energySavingModeMenu(hub);
                 break;
             case 13:
-                std::cout << "Feature will be implemented in the next step." << std::endl;
+                scheduledTasksMenu(hub, taskManager);
                 break;
             default:
                 std::cout << "Invalid option. Please try again." << std::endl;
