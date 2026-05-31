@@ -5,20 +5,33 @@
 #include <iostream>
 #include <utility>
 
-SmartLock::SmartLock(std::string id, std::string name, double wattage, std::string pin)
-    : SmartDevice(std::move(id), std::move(name), wattage),
-      pinCode(std::move(pin)),
+using namespace std;
+
+SmartLock::SmartLock(string id, string name, double wattage, string pin)
+    : SmartDevice(move(id), move(name), wattage),
+      pinCode(move(pin)),
       failedAttempts(0),
       isLocked(true) {
+    isActive = true;
 }
 
-std::string SmartLock::getType() const {
+string SmartLock::getType() const {
     return "SmartLock";
 }
 
-bool SmartLock::unlock(std::string pin) {
+void SmartLock::turnOn() {
+    lock();
+}
+
+void SmartLock::turnOff() {
+    isLocked = false;
+    isActive = false;
+    failedAttempts = 0;
+}
+
+bool SmartLock::unlock(string pin) {
     if (pin == pinCode) {
-        isLocked = false;
+        turnOff();
         failedAttempts = 0;
         return true;
     }
@@ -33,9 +46,10 @@ bool SmartLock::unlock(std::string pin) {
 
 void SmartLock::lock() {
     isLocked = true;
+    isActive = true;
 }
 
-void SmartLock::changePin(std::string oldPin, std::string newPin) {
+void SmartLock::changePin(string oldPin, string newPin) {
     if (oldPin != pinCode) {
         ++failedAttempts;
         if (failedAttempts >= 3) {
@@ -45,19 +59,18 @@ void SmartLock::changePin(std::string oldPin, std::string newPin) {
         throw InvalidSettingException("Old PIN is incorrect.");
     }
 
-    pinCode = std::move(newPin);
+    pinCode = move(newPin);
     failedAttempts = 0;
 }
 
 void SmartLock::printStatus() const {
-    std::cout << "SmartLock [" << id << "] " << name
-              << " | Active: " << (isActive ? "yes" : "no")
+    cout << "SmartLock [" << id << "] " << name
               << " | Wattage: " << wattage
               << " | Locked: " << (isLocked ? "yes" : "no")
-              << " | Failed attempts: " << failedAttempts << std::endl;
+              << " | Failed attempts: " << failedAttempts << endl;
 }
 
-void SmartLock::applyScene(const std::string& scene) {
+void SmartLock::applyScene(const string& scene) {
     if (scene == "going_out" || scene == "night_mode") {
         lock();
     }

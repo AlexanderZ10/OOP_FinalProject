@@ -20,6 +20,8 @@ public:
     void removeDevice(const std::string& id);
     void renameDevice(const std::string& id, const std::string& newName);
     SmartDevice* findDeviceById(const std::string& id) const;
+    void turnAllOn();
+    void turnAllOff();
     void executeScene(const std::string& scene);
     void printAllStatuses() const;
     std::vector<SmartDevice*> getActiveDevices() const;

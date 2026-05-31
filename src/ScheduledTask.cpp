@@ -1,13 +1,15 @@
 #include "ScheduledTask.h"
 
-ScheduledTask::ScheduledTask(SmartDevice* target, const std::string& command, int delaySeconds, std::time_t currentTime)
+using namespace std;
+
+ScheduledTask::ScheduledTask(SmartDevice* target, const string& command, int delaySeconds, time_t currentTime)
     : target(target),
       command(command),
       activateAt(currentTime + delaySeconds),
       executed(false) {
 }
 
-bool ScheduledTask::checkAndExecute(std::time_t now) {
+bool ScheduledTask::checkAndExecute(time_t now) {
     if (executed) {
         return false;
     }
@@ -32,11 +34,11 @@ SmartDevice* ScheduledTask::getTarget() const {
     return target;
 }
 
-std::string ScheduledTask::getCommand() const {
+string ScheduledTask::getCommand() const {
     return command;
 }
 
-std::time_t ScheduledTask::getActivateAt() const {
+time_t ScheduledTask::getActivateAt() const {
     return activateAt;
 }
 

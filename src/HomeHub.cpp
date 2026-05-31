@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <iostream>
 
+using namespace std;
+
 HomeHub::~HomeHub() {
     for (SmartDevice* device : devices) {
         delete device;
@@ -15,8 +17,8 @@ void HomeHub::addDevice(SmartDevice* device) {
     }
 }
 
-void HomeHub::removeDevice(const std::string& id) {
-    auto it = std::find_if(devices.begin(), devices.end(), [&id](SmartDevice* device) {
+void HomeHub::removeDevice(const string& id) {
+    auto it = find_if(devices.begin(), devices.end(), [&id](SmartDevice* device) {
         return device != nullptr && device->getId() == id;
     });
 
@@ -26,7 +28,7 @@ void HomeHub::removeDevice(const std::string& id) {
     }
 }
 
-void HomeHub::renameDevice(const std::string& id, const std::string& newName) {
+void HomeHub::renameDevice(const string& id, const string& newName) {
     for (SmartDevice* device : devices) {
         if (device != nullptr && device->getId() == id) {
             device->rename(newName);
@@ -35,7 +37,7 @@ void HomeHub::renameDevice(const std::string& id, const std::string& newName) {
     }
 }
 
-SmartDevice* HomeHub::findDeviceById(const std::string& id) const {
+SmartDevice* HomeHub::findDeviceById(const string& id) const {
     for (SmartDevice* device : devices) {
         if (device != nullptr && device->getId() == id) {
             return device;
@@ -45,7 +47,23 @@ SmartDevice* HomeHub::findDeviceById(const std::string& id) const {
     return nullptr;
 }
 
-void HomeHub::executeScene(const std::string& scene) {
+void HomeHub::turnAllOn() {
+    for (SmartDevice* device : devices) {
+        if (device != nullptr) {
+            device->turnOn();
+        }
+    }
+}
+
+void HomeHub::turnAllOff() {
+    for (SmartDevice* device : devices) {
+        if (device != nullptr) {
+            device->turnOff();
+        }
+    }
+}
+
+void HomeHub::executeScene(const string& scene) {
     for (SmartDevice* device : devices) {
         if (device != nullptr) {
             device->applyScene(scene);
@@ -61,8 +79,8 @@ void HomeHub::printAllStatuses() const {
     }
 }
 
-std::vector<SmartDevice*> HomeHub::getActiveDevices() const {
-    std::vector<SmartDevice*> activeDevices;
+vector<SmartDevice*> HomeHub::getActiveDevices() const {
+    vector<SmartDevice*> activeDevices;
 
     for (SmartDevice* device : devices) {
         if (device != nullptr && device->isOn()) {
@@ -73,8 +91,8 @@ std::vector<SmartDevice*> HomeHub::getActiveDevices() const {
     return activeDevices;
 }
 
-std::vector<SmartDevice*> HomeHub::getByCategory(const std::string& type) const {
-    std::vector<SmartDevice*> matchingDevices;
+vector<SmartDevice*> HomeHub::getByCategory(const string& type) const {
+    vector<SmartDevice*> matchingDevices;
 
     for (SmartDevice* device : devices) {
         if (device != nullptr && device->getType() == type) {
@@ -85,10 +103,10 @@ std::vector<SmartDevice*> HomeHub::getByCategory(const std::string& type) const 
     return matchingDevices;
 }
 
-std::vector<SmartDevice*> HomeHub::getDevicesSortedByPower() const {
-    std::vector<SmartDevice*> sortedDevices = devices;
+vector<SmartDevice*> HomeHub::getDevicesSortedByPower() const {
+    vector<SmartDevice*> sortedDevices = devices;
 
-    std::sort(sortedDevices.begin(), sortedDevices.end(), [](const SmartDevice* left, const SmartDevice* right) {
+    sort(sortedDevices.begin(), sortedDevices.end(), [](const SmartDevice* left, const SmartDevice* right) {
         if (left == nullptr) {
             return false;
         }
@@ -108,16 +126,16 @@ void HomeHub::energySavingMode(double threshold) {
 
     for (SmartDevice* device : devices) {
         if (device != nullptr && device->isOn() && device->getWattage() > threshold) {
-            std::cout << "- Turning off " << device->getName()
+            cout << "- Turning off " << device->getName()
                       << " (" << device->getType()
-                      << ", " << device->getWattage() << "W)" << std::endl;
+                      << ", " << device->getWattage() << "W)" << endl;
             device->turnOff();
             turnedOffAnyDevice = true;
         }
     }
 
     if (!turnedOffAnyDevice) {
-        std::cout << "- No active devices above " << threshold << "W were turned off." << std::endl;
+        cout << "- No active devices above " << threshold << "W were turned off." << endl;
     }
 }
 
@@ -126,16 +144,16 @@ void HomeHub::printDevicesAbovePower(double threshold) const {
 
     for (const SmartDevice* device : devices) {
         if (device != nullptr && device->getWattage() > threshold) {
-            std::cout << "- " << device->getName()
+            cout << "- " << device->getName()
                       << " | Type: " << device->getType()
                       << " | Wattage: " << device->getWattage() << "W"
-                      << " | Active: " << (device->isOn() ? "yes" : "no") << std::endl;
+                      << " | Active: " << (device->isOn() ? "yes" : "no") << endl;
             foundDevice = true;
         }
     }
 
     if (!foundDevice) {
-        std::cout << "- No devices above " << threshold << "W." << std::endl;
+        cout << "- No devices above " << threshold << "W." << endl;
     }
 }
 

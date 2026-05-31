@@ -11,6 +11,8 @@ private:
 public:
     SmartLock(std::string id, std::string name, double wattage, std::string pin);
 
+    void turnOn() override;
+    void turnOff() override;
     bool unlock(std::string pin);
     void lock();
     void changePin(std::string oldPin, std::string newPin);

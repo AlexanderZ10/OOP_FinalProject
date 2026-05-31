@@ -5,14 +5,16 @@
 #include <iostream>
 #include <utility>
 
-Camera::Camera(std::string id, std::string name, double wattage)
-    : SmartDevice(std::move(id), std::move(name), wattage),
+using namespace std;
+
+Camera::Camera(string id, string name, double wattage)
+    : SmartDevice(move(id), move(name), wattage),
       isRecording(false),
       resolution("1080p"),
       motionDetected(false) {
 }
 
-std::string Camera::getType() const {
+string Camera::getType() const {
     return "Camera";
 }
 
@@ -24,24 +26,24 @@ void Camera::stopRecording() {
     isRecording = false;
 }
 
-void Camera::setResolution(std::string res) {
+void Camera::setResolution(string res) {
     if (res != "720p" && res != "1080p" && res != "4K") {
         throw InvalidSettingException("Camera resolution must be 720p, 1080p, or 4K.");
     }
 
-    resolution = std::move(res);
+    resolution = move(res);
 }
 
 void Camera::printStatus() const {
-    std::cout << "Camera [" << id << "] " << name
+    cout << "Camera [" << id << "] " << name
               << " | Active: " << (isActive ? "yes" : "no")
               << " | Wattage: " << wattage
               << " | Recording: " << (isRecording ? "yes" : "no")
               << " | Resolution: " << resolution
-              << " | Motion detected: " << (motionDetected ? "yes" : "no") << std::endl;
+              << " | Motion detected: " << (motionDetected ? "yes" : "no") << endl;
 }
 
-void Camera::applyScene(const std::string& scene) {
+void Camera::applyScene(const string& scene) {
     if (scene == "going_out" || scene == "night_mode") {
         turnOn();
         startRecording();

@@ -5,11 +5,13 @@
 #include <iostream>
 #include <utility>
 
-Thermostat::Thermostat(std::string id, std::string name, double wattage)
-    : SmartDevice(std::move(id), std::move(name), wattage), targetTemp(22.0) {
+using namespace std;
+
+Thermostat::Thermostat(string id, string name, double wattage)
+    : SmartDevice(move(id), move(name), wattage), targetTemp(22.0) {
 }
 
-std::string Thermostat::getType() const {
+string Thermostat::getType() const {
     return "Thermostat";
 }
 
@@ -26,13 +28,13 @@ double Thermostat::getTemp() const {
 }
 
 void Thermostat::printStatus() const {
-    std::cout << "Thermostat [" << id << "] " << name
+    cout << "Thermostat [" << id << "] " << name
               << " | Active: " << (isActive ? "yes" : "no")
               << " | Wattage: " << wattage
-              << " | Target temp: " << targetTemp << "C" << std::endl;
+              << " | Target temp: " << targetTemp << "C" << endl;
 }
 
-void Thermostat::applyScene(const std::string& scene) {
+void Thermostat::applyScene(const string& scene) {
     if (scene == "going_out") {
         targetTemp = 18.0;
     } else if (scene == "night_mode") {

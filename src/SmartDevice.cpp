@@ -2,8 +2,10 @@
 
 #include <utility>
 
-SmartDevice::SmartDevice(std::string id, std::string name, double wattage)
-    : id(std::move(id)), name(std::move(name)), isActive(false), wattage(wattage) {
+using namespace std;
+
+SmartDevice::SmartDevice(string id, string name, double wattage)
+    : id(move(id)), name(move(name)), isActive(false), wattage(wattage) {
 }
 
 SmartDevice::~SmartDevice() = default;
@@ -16,16 +18,16 @@ void SmartDevice::turnOff() {
     isActive = false;
 }
 
-std::string SmartDevice::getId() const {
+string SmartDevice::getId() const {
     return id;
 }
 
-std::string SmartDevice::getName() const {
+string SmartDevice::getName() const {
     return name;
 }
 
-void SmartDevice::rename(std::string newName) {
-    name = std::move(newName);
+void SmartDevice::rename(string newName) {
+    name = move(newName);
 }
 
 double SmartDevice::getWattage() const {

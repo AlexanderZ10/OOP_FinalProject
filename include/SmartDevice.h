@@ -13,8 +13,8 @@ public:
     SmartDevice(std::string id, std::string name, double wattage);
     virtual ~SmartDevice();
 
-    void turnOn();
-    void turnOff();
+    virtual void turnOn();
+    virtual void turnOff();
 
     std::string getId() const;
     std::string getName() const;

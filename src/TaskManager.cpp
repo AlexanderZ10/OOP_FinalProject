@@ -6,8 +6,10 @@
 #include <iostream>
 #include <sstream>
 
+using namespace std;
+
 TaskManager::TaskManager()
-    : currentTime(std::time(nullptr)),
+    : currentTime(time(nullptr)),
       running(true),
       workerThread(&TaskManager::backgroundLoop, this) {
 }
@@ -22,22 +24,22 @@ TaskManager::~TaskManager() {
 
 void TaskManager::backgroundLoop() {
     while (running) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        this_thread::sleep_for(chrono::seconds(1));
 
-        std::lock_guard<std::mutex> lock(taskMutex);
+        lock_guard<mutex> lock(taskMutex);
         updateCurrentTimeLocked();
         executePendingTasksLocked(false);
     }
 }
 
-void TaskManager::addTask(SmartDevice* target, const std::string& command, int delaySeconds) {
-    std::lock_guard<std::mutex> lock(taskMutex);
+void TaskManager::addTask(SmartDevice* target, const string& command, int delaySeconds) {
+    lock_guard<mutex> lock(taskMutex);
     updateCurrentTimeLocked();
     tasks.emplace_back(target, command, delaySeconds, currentTime);
 }
 
 void TaskManager::executePendingTasks() {
-    std::lock_guard<std::mutex> lock(taskMutex);
+    lock_guard<mutex> lock(taskMutex);
     executePendingTasksLocked(true);
 }
 
@@ -48,7 +50,7 @@ bool TaskManager::executePendingTasksLocked(bool showNoTasksMessage) {
         if (task.checkAndExecute(currentTime)) {
             SmartDevice* device = task.getTarget();
 
-            std::ostringstream message;
+            ostringstream message;
             message << "Task executed | Device: " << (device != nullptr ? device->getId() : "unknown")
                     << " | Command: " << task.getCommand();
             notifications.push_back(message.str());
@@ -58,17 +60,17 @@ bool TaskManager::executePendingTasksLocked(bool showNoTasksMessage) {
     }
 
     if (!executedAnyTask && showNoTasksMessage) {
-        std::cout << "No pending tasks are ready to execute." << std::endl;
+        cout << "No pending tasks are ready to execute." << endl;
     }
 
     return executedAnyTask;
 }
 
 void TaskManager::listTasks() const {
-    std::lock_guard<std::mutex> lock(taskMutex);
+    lock_guard<mutex> lock(taskMutex);
 
     if (tasks.empty()) {
-        std::cout << "No scheduled tasks." << std::endl;
+        cout << "No scheduled tasks." << endl;
         return;
     }
 
@@ -78,34 +80,34 @@ void TaskManager::listTasks() const {
                                          ? static_cast<long long>(task.getActivateAt() - currentTime)
                                          : 0;
 
-        std::cout << "- Device ID: " << (device != nullptr ? device->getId() : "unknown")
+        cout << "- Device ID: " << (device != nullptr ? device->getId() : "unknown")
                   << " | Command: " << task.getCommand()
                   << " | Activation time: " << formatTime(task.getActivateAt())
                   << " | Status: " << (task.isExecuted() ? "Executed" : "Pending")
-                  << " | Remaining time: " << remainingSeconds << "s" << std::endl;
+                  << " | Remaining time: " << remainingSeconds << "s" << endl;
     }
 }
 
-std::vector<std::string> TaskManager::drainNotifications() {
-    std::lock_guard<std::mutex> lock(taskMutex);
-    std::vector<std::string> drainedNotifications = notifications;
+vector<string> TaskManager::drainNotifications() {
+    lock_guard<mutex> lock(taskMutex);
+    vector<string> drainedNotifications = notifications;
     notifications.clear();
 
     return drainedNotifications;
 }
 
-std::time_t TaskManager::getCurrentTime() const {
-    std::lock_guard<std::mutex> lock(taskMutex);
+time_t TaskManager::getCurrentTime() const {
+    lock_guard<mutex> lock(taskMutex);
     return currentTime;
 }
 
-std::string TaskManager::getCurrentTimeText() const {
-    std::lock_guard<std::mutex> lock(taskMutex);
+string TaskManager::getCurrentTimeText() const {
+    lock_guard<mutex> lock(taskMutex);
     return formatTime(currentTime);
 }
 
-std::string TaskManager::formatTime(std::time_t time) const {
-    std::tm localTime{};
+string TaskManager::formatTime(time_t time) const {
+    tm localTime{};
 
 #ifdef _WIN32
     localtime_s(&localTime, &time);
@@ -113,11 +115,11 @@ std::string TaskManager::formatTime(std::time_t time) const {
     localtime_r(&time, &localTime);
 #endif
 
-    std::ostringstream output;
-    output << std::put_time(&localTime, "%Y-%m-%d %H:%M:%S");
+    ostringstream output;
+    output << put_time(&localTime, "%Y-%m-%d %H:%M:%S");
     return output.str();
 }
 
 void TaskManager::updateCurrentTimeLocked() {
-    currentTime = std::time(nullptr);
+    currentTime = time(nullptr);
 }
