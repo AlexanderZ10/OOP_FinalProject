@@ -1,14 +1,5 @@
 #include "ScheduledTask.h"
 
-#include <ctime>
-
-ScheduledTask::ScheduledTask(SmartDevice* target, const std::string& command, int delaySeconds)
-    : target(target),
-      command(command),
-      activateAt(std::time(nullptr) + delaySeconds),
-      executed(false) {
-}
-
 ScheduledTask::ScheduledTask(SmartDevice* target, const std::string& command, int delaySeconds, std::time_t currentTime)
     : target(target),
       command(command),

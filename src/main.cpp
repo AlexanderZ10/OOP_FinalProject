@@ -14,9 +14,32 @@
 
 using std::string;
 
+void printSeparator() {
+    std::cout << std::endl << "============================================================" << std::endl;
+}
+
+void printSmallSeparator() {
+    std::cout << "------------------------------------------------------------" << std::endl;
+}
+
+void printTaskNotifications(TaskManager& taskManager) {
+    std::vector<std::string> notifications = taskManager.drainNotifications();
+
+    if (notifications.empty()) {
+        return;
+    }
+
+    printSmallSeparator();
+    std::cout << "Notifications:" << std::endl;
+    for (const string& notification : notifications) {
+        std::cout << "- " << notification << std::endl;
+    }
+    printSmallSeparator();
+}
+
 void printMainMenu() {
-    std::cout << std::endl
-              << "Smart Home Management System" << std::endl
+    printSeparator();
+    std::cout << "Smart Home Management System" << std::endl
               << "1. Add device" << std::endl
               << "2. Remove device" << std::endl
               << "3. Rename device" << std::endl
@@ -31,6 +54,7 @@ void printMainMenu() {
               << "12. Energy saving mode" << std::endl
               << "13. Scheduled tasks" << std::endl
               << "0. Exit" << std::endl;
+    printSmallSeparator();
 }
 
 int readInt(const string& prompt) {
@@ -488,16 +512,19 @@ void scheduledTasksMenu(HomeHub& hub, TaskManager& taskManager) {
     bool inTaskMenu = true;
 
     while (inTaskMenu) {
-        std::cout << std::endl
-                  << "Scheduled Tasks" << std::endl
-                  << "Current simulated time: " << static_cast<long long>(taskManager.getCurrentTime()) << std::endl
+        printTaskNotifications(taskManager);
+
+        printSeparator();
+        std::cout << "Scheduled Tasks" << std::endl
+                  << "Current time: " << taskManager.getCurrentTimeText() << std::endl
                   << "1. Create Task" << std::endl
                   << "2. List Tasks" << std::endl
-                  << "3. Advance Time" << std::endl
-                  << "4. Execute Pending Tasks" << std::endl
+                  << "3. Execute Pending Tasks" << std::endl
                   << "0. Back" << std::endl;
+        printSmallSeparator();
 
         int choice = readInt("Choose option: ");
+        printTaskNotifications(taskManager);
 
         switch (choice) {
             case 0:
@@ -509,14 +536,7 @@ void scheduledTasksMenu(HomeHub& hub, TaskManager& taskManager) {
             case 2:
                 taskManager.listTasks();
                 break;
-            case 3: {
-                int seconds = readNonNegativeInt("Enter seconds to advance: ");
-                taskManager.advanceTime(seconds);
-                std::cout << "New simulated time: "
-                          << static_cast<long long>(taskManager.getCurrentTime()) << std::endl;
-                break;
-            }
-            case 4:
+            case 3:
                 taskManager.executePendingTasks();
                 break;
             default:
@@ -532,9 +552,11 @@ void runMenu() {
     bool running = true;
 
     while (running) {
+        printTaskNotifications(taskManager);
         printMainMenu();
 
         int choice = readInt("Choose option: ");
+        printTaskNotifications(taskManager);
 
         switch (choice) {
             case 0:

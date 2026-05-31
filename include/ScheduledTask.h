@@ -13,7 +13,6 @@ private:
     bool executed;
 
 public:
-    ScheduledTask(SmartDevice* target, const std::string& command, int delaySeconds);
     ScheduledTask(SmartDevice* target, const std::string& command, int delaySeconds, std::time_t currentTime);
 
     bool checkAndExecute(std::time_t now);
