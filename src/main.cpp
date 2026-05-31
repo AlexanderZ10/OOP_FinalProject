@@ -184,7 +184,7 @@ void addDeviceMenu(HomeHub& hub) {
               << "1. Light" << std::endl
               << "2. Thermostat" << std::endl
               << "3. Camera" << std::endl
-              << "4. SmartLock" << std::endl;
+              << "4. SmartLock (requires PIN)" << std::endl;
 
     int type = readInt("Choose device type: ");
     if (type < 1 || type > 4) {
@@ -193,6 +193,11 @@ void addDeviceMenu(HomeHub& hub) {
     }
 
     string id = readRequiredId();
+    if (hub.findDeviceById(id) != nullptr) {
+        std::cout << "A device with this ID already exists. Device was not added." << std::endl;
+        return;
+    }
+
     string name = readString("Enter device name: ");
     double wattage = readValidWattage();
 
@@ -210,9 +215,9 @@ void addDeviceMenu(HomeHub& hub) {
             std::cout << "Camera added successfully." << std::endl;
             break;
         case 4: {
-            string pin = readString("Enter PIN: ");
+            string pin = readString("Enter initial PIN for SmartLock: ");
             hub.addDevice(new SmartLock(id, name, wattage, pin));
-            std::cout << "SmartLock added successfully." << std::endl;
+            std::cout << "SmartLock added successfully. Use this PIN to unlock or change the PIN later." << std::endl;
             break;
         }
     }
@@ -220,16 +225,26 @@ void addDeviceMenu(HomeHub& hub) {
 
 void removeDeviceMenu(HomeHub& hub) {
     string id = readRequiredId();
+    if (hub.findDeviceById(id) == nullptr) {
+        std::cout << "Device not found. Nothing was removed." << std::endl;
+        return;
+    }
+
     hub.removeDevice(id);
-    std::cout << "Remove device request completed." << std::endl;
+    std::cout << "Device removed successfully." << std::endl;
 }
 
 void renameDeviceMenu(HomeHub& hub) {
     string id = readRequiredId();
+    if (hub.findDeviceById(id) == nullptr) {
+        std::cout << "Device not found. Nothing was renamed." << std::endl;
+        return;
+    }
+
     string newName = readString("Enter new device name: ");
 
     hub.renameDevice(id, newName);
-    std::cout << "Rename device request completed." << std::endl;
+    std::cout << "Device renamed successfully." << std::endl;
 }
 
 void showAllDevicesMenu(HomeHub& hub) {
